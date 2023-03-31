@@ -1,6 +1,11 @@
 ﻿using FizzBuzzWeb.Forms;
 using Microsoft.AspNetCore.Mvc;
+using System.Web.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
+using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 
 namespace FizzBuzzWeb.Pages
 {
@@ -11,8 +16,10 @@ namespace FizzBuzzWeb.Pages
         [BindProperty]
         public FizzBuzzForm FizzBuzz { get; set; }
 
+
+        [Display(Name = "UserName")]
         [BindProperty(SupportsGet = true)]
-        public string Name { get; set; }
+        public string? Name { get; set; }
         public string Word { get; set; }
 
         public IndexModel(ILogger<IndexModel> logger)
@@ -31,11 +38,14 @@ namespace FizzBuzzWeb.Pages
             CheckUserName();
             WordBuzz();
 
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)// ciekawostka musiałem dodać ? po typie string dla zmiennej Name, jest to dla tego, że jeśli nie podało się nazwy urztkownika 
             {
-                return Page();
+                HttpContext.Session.SetString("Data",
+                JsonConvert.SerializeObject(FizzBuzz));
+                return RedirectToPage("./SavedInSession");
             }
-            return RedirectToPage("./Privacy");
+            return Page();
+            
         }
 
         private void CheckUserName()
@@ -47,9 +57,9 @@ namespace FizzBuzzWeb.Pages
         }
 
         private void WordBuzz() {
+            Word = "";
             if (FizzBuzz.Number is not null)
             {
-                Word = "";
                 if (FizzBuzz.Number % 3 == 0)
                 {
                     Word += "Fizz";
